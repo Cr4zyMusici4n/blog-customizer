@@ -19,18 +19,16 @@ import {
 import { RadioGroup } from 'src/ui/radio-group';
 import { Separator } from 'src/ui/separator';
 
-type Props = {
+type TArticleParamsFormProps = {
 	articleSettings: ArticleStateType;
-	onSubmit: (articleSettings: ArticleStateType) => void;
-	onReset: () => void;
+	setArticleSettings: (newArticleSettings: ArticleStateType) => void;
 };
 
 export const ArticleParamsForm = ({
 	articleSettings,
-	onSubmit,
-	onReset,
-}: Props) => {
-	const [isOpen, setIsOpen] = useState(true);
+	setArticleSettings,
+}: TArticleParamsFormProps) => {
+	const [isOpen, setIsOpen] = useState(false);
 	const [localArticleSettings, setLocalArticleSettings] =
 		useState(articleSettings);
 	const modalRef = useRef<HTMLElement | null>(null);
@@ -39,77 +37,51 @@ export const ArticleParamsForm = ({
 		setIsOpen((prevIsOpen) => !prevIsOpen);
 	};
 
-	const handleKeyDown = (event: KeyboardEvent) => {
-		if (event.key === 'Escape') {
-			setIsOpen(false);
-		}
-	};
-
-	const handleClickOutside = (event: MouseEvent) => {
-		if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-			setIsOpen(false);
-		}
-	};
-
-	const handleFontFamily = (newFontFamily: OptionType) => {
-		setLocalArticleSettings((prev) => ({
-			...prev,
-			fontFamilyOption: newFontFamily,
-		}));
-	};
-
-	const handleFontSize = (newFontSize: OptionType) => {
-		setLocalArticleSettings((prev) => ({
-			...prev,
-			fontSizeOption: newFontSize,
-		}));
-	};
-
-	const handleFontColor = (newFontColor: OptionType) => {
-		setLocalArticleSettings((prev) => ({
-			...prev,
-			fontColor: newFontColor,
-		}));
-	};
-
-	const handleBackgroundColor = (newBackgroundColor: OptionType) => {
-		setLocalArticleSettings((prev) => ({
-			...prev,
-			backgroundColor: newBackgroundColor,
-		}));
-	};
-
-	const handleContentWidth = (newContentWidth: OptionType) => {
-		setLocalArticleSettings((prev) => ({
-			...prev,
-			contentWidth: newContentWidth,
-		}));
-	};
-
-	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-		onSubmit(localArticleSettings);
-	};
-
-	const handleReset = () => {
-		onReset();
-		setLocalArticleSettings(defaultArticleState);
-	};
-
 	useEffect(() => {
-		if (isOpen) {
-			document.addEventListener('keydown', handleKeyDown);
-			document.addEventListener('mousedown', handleClickOutside);
-		} else {
-			document.removeEventListener('keydown', handleKeyDown);
-			document.removeEventListener('mousedown', handleClickOutside);
-		}
+		if (!isOpen) return;
+
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				setIsOpen(false);
+			}
+		};
+
+		const handleClickOutside = (event: MouseEvent) => {
+			if (
+				modalRef.current &&
+				!modalRef.current.contains(event.target as Node)
+			) {
+				setIsOpen(false);
+			}
+		};
+
+		document.addEventListener('keydown', handleKeyDown);
+		document.addEventListener('mousedown', handleClickOutside);
 
 		return () => {
 			document.removeEventListener('keydown', handleKeyDown);
 			document.removeEventListener('mousedown', handleClickOutside);
 		};
 	}, [isOpen]);
+
+	const handleChange = (field: keyof ArticleStateType) => {
+		return (value: OptionType) => {
+			setLocalArticleSettings((prevState) => ({
+				...prevState,
+				[field]: value,
+			}));
+		};
+	};
+
+	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		setArticleSettings(localArticleSettings);
+	};
+
+	const handleReset = () => {
+		setLocalArticleSettings(defaultArticleState);
+		setArticleSettings(defaultArticleState);
+	};
 
 	return (
 		<>
@@ -121,43 +93,41 @@ export const ArticleParamsForm = ({
 					className={styles.form}
 					onSubmit={handleSubmit}
 					onReset={handleReset}>
-					<div className={styles.content}>
-						<Text as='h1' size={31} weight={800} uppercase>
-							Задайте параметры
-						</Text>
-						<Select
-							selected={localArticleSettings.fontFamilyOption}
-							options={fontFamilyOptions}
-							onChange={handleFontFamily}
-							title='Шрифты'
-						/>
-						<RadioGroup
-							name='Размер шрифта'
-							options={fontSizeOptions}
-							selected={localArticleSettings.fontSizeOption}
-							onChange={handleFontSize}
-							title='Размер шрифта'
-						/>
-						<Select
-							selected={localArticleSettings.fontColor}
-							options={fontColors}
-							onChange={handleFontColor}
-							title='Цвет шрифта'
-						/>
-						<Separator />
-						<Select
-							selected={localArticleSettings.backgroundColor}
-							options={backgroundColors}
-							onChange={handleBackgroundColor}
-							title='Цвет фона'
-						/>
-						<Select
-							selected={localArticleSettings.contentWidth}
-							options={contentWidthArr}
-							onChange={handleContentWidth}
-							title='Ширина контента'
-						/>
-					</div>
+					<Text as='h2' size={31} weight={800} uppercase>
+						Задайте параметры
+					</Text>
+					<Select
+						selected={localArticleSettings.fontFamilyOption}
+						options={fontFamilyOptions}
+						onChange={handleChange('fontFamilyOption')}
+						title='Шрифты'
+					/>
+					<RadioGroup
+						name='Размер шрифта'
+						options={fontSizeOptions}
+						selected={localArticleSettings.fontSizeOption}
+						onChange={handleChange('fontSizeOption')}
+						title='Размер шрифта'
+					/>
+					<Select
+						selected={localArticleSettings.fontColor}
+						options={fontColors}
+						onChange={handleChange('fontColor')}
+						title='Цвет шрифта'
+					/>
+					<Separator />
+					<Select
+						selected={localArticleSettings.backgroundColor}
+						options={backgroundColors}
+						onChange={handleChange('backgroundColor')}
+						title='Цвет фона'
+					/>
+					<Select
+						selected={localArticleSettings.contentWidth}
+						options={contentWidthArr}
+						onChange={handleChange('contentWidth')}
+						title='Ширина контента'
+					/>
 					<div className={styles.bottomContainer}>
 						<Button title='Сбросить' htmlType='reset' type='clear' />
 						<Button title='Применить' htmlType='submit' type='apply' />

@@ -1,4 +1,3 @@
-import clsx from 'clsx';
 import { CSSProperties, useState } from 'react';
 
 import {
@@ -14,13 +13,9 @@ export const App = () => {
 	const [articleSettings, setArticleSettings] =
 		useState<ArticleStateType>(defaultArticleState);
 
-	const handleReset = () => {
-		setArticleSettings(defaultArticleState);
-	};
-
 	return (
 		<main
-			className={clsx(styles.main)}
+			className={styles.main}
 			style={
 				{
 					'--font-family': articleSettings.fontFamilyOption.value,
@@ -32,8 +27,7 @@ export const App = () => {
 			}>
 			<ArticleParamsForm
 				articleSettings={articleSettings}
-				onSubmit={setArticleSettings}
-				onReset={handleReset}
+				setArticleSettings={setArticleSettings}
 			/>
 			<Article />
 		</main>
